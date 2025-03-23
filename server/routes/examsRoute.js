@@ -141,21 +141,32 @@ function parseGeneratedText(text) {
 
 router.post("/add", authMiddleware, async (req, res) => {
   try {
-    // check if exam already exists
+    console.log("Request Body:", req.body); // Debug: Log the request body
+
+    // Check if exam already exists
     const examExists = await Exam.findOne({ name: req.body.name });
     if (examExists) {
-      return res
-        .status(200)
-        .send({ message: "Exam already exists", success: false });
+      console.log("Exam already exists:", examExists); // Debug: Log existing exam
+      return res.status(200).send({
+        message: "Exam already exists",
+        success: false,
+      });
     }
-    req.body.questions = [];
+
+    // Create a new exam
+    req.body.questions = []; // Initialize questions as an empty array
     const newExam = new Exam(req.body);
     await newExam.save();
+
+    console.log("Exam created:", newExam); // Debug: Log the created exam
+
     res.send({
       message: "Exam added successfully",
       success: true,
+      data: newExam, // Return the created exam, including its _id
     });
   } catch (error) {
+    console.error("Error creating exam:", error); // Debug: Log the error
     res.status(500).send({
       message: error.message,
       data: error,
@@ -238,19 +249,46 @@ router.post("/delete-exam-by-id", authMiddleware, async (req, res) => {
 
 router.post("/add-question-to-exam", authMiddleware, async (req, res) => {
   try {
-    // add question to Questions collection
-    const newQuestion = new Question(req.body);
-    const question = await newQuestion.save();
+    console.log("Request Body:", req.body); // Debug: Log the request body
 
-    // add question to exam
-    const exam = await Exam.findById(req.body.exam);
-    exam.questions.push(question._id);
-    await exam.save();
+    // Validate request body
+    const { name, correctOption, options, exam } = req.body;
+
+    if (!name || !correctOption || !options || !exam) {
+      console.error("Missing required fields"); // Debug: Log missing fields
+      return res.status(400).send({
+        message: "Missing required fields: name, correctOption, options, or exam",
+        success: false,
+      });
+    }
+
+    // Add question to Questions collection
+    const newQuestion = new Question({ name, correctOption, options, exam });
+    const question = await newQuestion.save();
+    console.log("Question saved:", question); // Debug: Log the saved question
+
+    // Add question to exam
+    const examToUpdate = await Exam.findById(exam);
+    if (!examToUpdate) {
+      console.error("Exam not found:", exam); // Debug: Log invalid exam ID
+      return res.status(404).send({
+        message: "Exam not found",
+        success: false,
+      });
+    }
+
+    examToUpdate.questions.push(question._id);
+    await examToUpdate.save();
+    console.log("Exam updated:", examToUpdate); // Debug: Log the updated exam
+
+    // Send success response
     res.send({
       message: "Question added successfully",
       success: true,
+      data: question, // Include the saved question in the response
     });
   } catch (error) {
+    console.error("Error adding question to exam:", error); // Debug: Log the error
     res.status(500).send({
       message: error.message,
       data: error,
