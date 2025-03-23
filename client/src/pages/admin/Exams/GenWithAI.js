@@ -45,7 +45,7 @@ function GenWithAI() {
       const examPayload = {
         name: values.name || "Generated Quiz",
         duration: Number(values.duration), // Convert to number
-        category: values.text,
+        category: "Generated With AI",
         totalMarks: Number(values.totalMarks), // Convert to number
         passingMarks: Number(values.passingMarks), // Convert to number
         questions: [], // Initially empty, will be populated with question IDs
