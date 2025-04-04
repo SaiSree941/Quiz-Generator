@@ -4,9 +4,7 @@ const { default: axiosInstance } = require(".");
 
 export const addExam = async (payload) => {
   try {
-    const response = await axiosInstance.post("/api/exams/add", payload, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    });
+    const response = await axiosInstance.post("/api/exams/add", payload);
     return response.data; // Ensure this returns the exam data, including the _id
   } catch (error) {
     return error.response.data;
@@ -102,3 +100,12 @@ export const deleteQuestionById = async (payload) => {
     return error.response.data;
   }
 }
+
+export const generateQuiz = async (payload) => {
+  try {
+    const response = await axiosInstance.post("/api/exams/generate-quiz", payload);
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
